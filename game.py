@@ -148,6 +148,7 @@ class Game(object):
                 
                 winner=self.check_winner()
         stampa_dizionario(value_dictionary)
+        return value_dictionary
 
 
     def play(self, player1: Player, player2: Player) -> int:
