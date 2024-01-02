@@ -28,7 +28,7 @@ class Player(ABC):
         '''
         pass
 def crea_stato_da_array(array):
-    
+
     # Inizializza gli attributi dello stato
     State = namedtuple('State', ['x', 'o'])
     x_coordinates = []
@@ -140,25 +140,9 @@ class Game(object):
                 elif action not in value_dictionary[next_board]:
                         value_dictionary[next_board][action] = 0. 
                 if self.current_player_idx==0:
-                    stampa_dizionario(value_dictionary)
-                    print(current_board,action)
-                    print("l'equivalente:",current_board.get_equivalent())
-                    if current_board not in value_dictionary:
-                       print("non trova la board")
-                    elif action not in value_dictionary[current_board]:
-                        print("non trova l'azione")
-
                     value_dictionary[current_board][action] = ((1 - learning_rate) * value_dictionary[current_board][action] + 
                             learning_rate * (reward + discount_factor * max(value_dictionary[next_board].values())))
                 else:
-                    stampa_dizionario(value_dictionary)
-                    print(current_board,action)
-                    print("l'equivalente:",current_board.get_equivalent())
-
-                    if current_board not in value_dictionary:
-                       print("non trova la board")
-                    elif action not in value_dictionary[current_board]:
-                        print("non trova l'azione")
                     value_dictionary[current_board][action] = ((1 - learning_rate) * value_dictionary[current_board][action] + 
                             learning_rate * (reward + discount_factor * min(value_dictionary[next_board].values())))
                 
