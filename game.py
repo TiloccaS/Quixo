@@ -28,6 +28,7 @@ class Player(ABC):
         '''
         pass
 def crea_stato_da_array(array):
+    
     # Inizializza gli attributi dello stato
     State = namedtuple('State', ['x', 'o'])
     x_coordinates = []
