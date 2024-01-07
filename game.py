@@ -5,6 +5,8 @@ import numpy as np
 from collections import namedtuple
 from strategies.rl import Boards_numpy
 from tqdm import tqdm
+from itertools import product
+import random
 # Rules on PDF
 
 
@@ -163,6 +165,8 @@ class Game(object):
             while not ok:
                 from_pos, slide = players[self.current_player_idx].make_move(
                     self)
+                
+                print(slide)
                 print(from_pos,slide)
                 ok = self.__move(from_pos, slide, self.current_player_idx)
                 
@@ -175,6 +179,18 @@ class Game(object):
         return winner
 
     def __move(self, from_pos: tuple[int, int], slide: Move, player_id: int) -> bool:
+        '''Perform a move'''
+        if player_id > 2:
+            return False
+        # Oh God, Numpy arrays
+        prev_value = deepcopy(self._board[(from_pos[1], from_pos[0])])
+        acceptable = self.__take((from_pos[1], from_pos[0]), player_id)
+        if acceptable:
+            acceptable = self.__slide((from_pos[1], from_pos[0]), slide)
+            if not acceptable:
+                self._board[(from_pos[1], from_pos[0])] = deepcopy(prev_value)
+        return acceptable
+    def move(self, from_pos: tuple[int, int], slide: Move, player_id: int) -> bool:
         '''Perform a move'''
         if player_id > 2:
             return False
@@ -205,6 +221,7 @@ class Game(object):
             self._board[from_pos] = player_id
         return acceptable
 
+    
     def __slide(self, from_pos: tuple[int, int], slide: Move) -> bool:
         '''Slide the other pieces'''
         # define the corners
@@ -284,3 +301,17 @@ class Game(object):
                 # move the piece down
                 self._board[(self._board.shape[0] - 1, from_pos[1])] = piece
         return acceptable
+    def getPossibleMoves(self,player_id:int):
+        possible_moves=[]
+        first_two_numbers = range(5)
+        last_number = range(4)
+        all_combinations = list(product(first_two_numbers, first_two_numbers, last_number))
+        for a in all_combinations:
+            tmp=deepcopy(self)
+            if tmp.move((a[0],a[1]),Move(a[2]),player_id)==True:
+                possible_moves.append(((a[0],a[1]),Move(a[2])))
+        random.shuffle(possible_moves)
+        return possible_moves
+        
+             
+    
