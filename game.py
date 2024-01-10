@@ -29,32 +29,8 @@ class Player(ABC):
         return values: this method shall return a tuple of X,Y positions and a move among TOP, BOTTOM, LEFT and RIGHT
         '''
         pass
-def crea_stato_da_array(array):
 
-    # Inizializza gli attributi dello stato
-    State = namedtuple('State', ['x', 'o'])
-    x_coordinates = []
-    o_coordinates = []
 
-    # Scansiona l'array e registra le coordinate
-    for i in range(array.shape[0]):
-        for j in range(array.shape[1]):
-            if array[i, j] == 1:
-                x_coordinates.append((i, j))
-            elif array[i, j] == 0:
-                o_coordinates.append((i, j))
-
-    # Crea un'istanza della namedtuple con le coordinate
-    stato = State(x=x_coordinates, o=o_coordinates)
-    return stato
-def stampa_dizionario(dizionario, livello=0):
-    spazi = "  " * livello
-    for chiave, valore in dizionario.items():
-        if isinstance(valore, dict):
-            print(f"{spazi}{chiave}:")
-            stampa_dizionario(valore, livello + 1)
-        else:
-            print(f"{spazi}{chiave}: {valore}")
 class Game(object):
     def __init__(self) -> None:
         self._board = np.ones((5, 5), dtype=np.uint8) * -1
@@ -105,54 +81,7 @@ class Game(object):
             # return the relative id
             return self._board[0, -1]
         return -1
-    def train_rl(self,steps,learning_rate,discount_factor,player:Player):
-        players = [player,player]
-        winner = -1
-        value_dictionary = {}
-       
-        for _ in tqdm(range(steps)):
-            current_board=Boards_numpy()
-            next_board=Boards_numpy()
-            while winner<0:
-                current_board=Boards_numpy()
-                next_board=Boards_numpy()
-                self.current_player_idx += 1
-                self.current_player_idx %= len(players)
-                ok=False
-                while not ok:
-                    from_pos,slide=players[self.current_player_idx].make_move(self)
-                    current_board.current=crea_stato_da_array(self.get_board())
-                    current_board.current=current_board.get_equivalent()
-                    tmp=self.__move(from_pos,slide,self.current_player_idx)
-                    next_board.current=crea_stato_da_array(self.get_board())
-                    next_board.current=next_board.get_equivalent()
-                    ok=tmp
-                reward=self.check_winner()
-                if reward==0:
-                    reward=-1
-                elif reward==-1:
-                    reward=0
-                action=str(from_pos)+" "+str(slide)
-                if current_board not in value_dictionary:
-                    value_dictionary[current_board]={action:0.}
-                elif action not in value_dictionary[current_board]:
-                    value_dictionary[current_board][action] = 0. 
-                if next_board not in value_dictionary:
-                    value_dictionary[next_board]={action:0.}
-                elif action not in value_dictionary[next_board]:
-                        value_dictionary[next_board][action] = 0. 
-                if self.current_player_idx==0:
-                    value_dictionary[current_board][action] = ((1 - learning_rate) * value_dictionary[current_board][action] + 
-                            learning_rate * (reward + discount_factor * max(value_dictionary[next_board].values())))
-                else:
-                    value_dictionary[current_board][action] = ((1 - learning_rate) * value_dictionary[current_board][action] + 
-                            learning_rate * (reward + discount_factor * min(value_dictionary[next_board].values())))
-                
-                winner=self.check_winner()
-        stampa_dizionario(value_dictionary)
-        return value_dictionary
-
-
+    
     def play(self, player1: Player, player2: Player) -> int:
         '''Play the game. Returns the winning player'''
         players = [player1, player2]
@@ -169,11 +98,6 @@ class Game(object):
                 print(slide)
                 print(from_pos,slide)
                 ok = self.__move(from_pos, slide, self.current_player_idx)
-                
-                """
-                l'idea è di costruire un dizionario di stato azione 
-                dove per lo stato lo trovo chiamando la funzione creao_stato_da_array in selfboard oppure rl.get_coordinates
-                """
             print(self._board)  
             winner = self.check_winner()
         return winner

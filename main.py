@@ -1,7 +1,6 @@
 import random
 from game import Game, Move, Player
 
-
 class RandomPlayer(Player):
     def __init__(self) -> None:
         super().__init__()
@@ -11,7 +10,7 @@ class RandomPlayer(Player):
         move = random.choice([Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT])
         return from_pos, move
 
-
+## MUST BE RL player
 class MyPlayer(Player):
     def __init__(self) -> None:
         super().__init__()
