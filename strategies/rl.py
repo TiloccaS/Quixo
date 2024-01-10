@@ -1,61 +1,83 @@
-from itertools import combinations
+from game import Game, Move, Player
 from collections import namedtuple
-from random import choice
 from copy import deepcopy
-import functools
+
+import random
 import numpy as np
 from tqdm.auto import tqdm
 
 State = namedtuple('state', ['x', 'o'])
 
-def get_coordinates(matrix):
+def get_coordinates(board):
+    ## Returns current state, which contains 2 sets (1 for player) containing coordinates of player's positions
     x_coordinates = set()
     o_coordinates = set()
-    #restituisce le coordinate dove in x mette gli elementi con 0 e in o le coordinate con 1
-    rows, cols = np.shape(matrix)
+    rows, cols = np.shape(board)
 
     for i in range(rows):
         for j in range(cols):
-            if matrix[i, j] == 0:
-                x_coordinates.add((i, j))
-            elif matrix[i, j] == 1:
-                o_coordinates.add((i, j))
+            if board[i, j] == 0:
+                x_coordinates.add((j, i))    
+            elif board[i, j] == 1:
+                o_coordinates.add((j, i))
 
-    return State(x=x_coordinates, o=o_coordinates)        
-class Boards_numpy():
-    def __init__(self):
-        State=namedtuple('state',['x','o'])
-        self.current=State(x=set(),o=set())#stato attuale del gioco
-        #board
-        self.state=np.full((5, 5), -1)
-        self.board=np.array(list(range(1, 26))).reshape(5,5)
-        self.board_90=np.array([21,16,11,6,1,22,17,12,7,2,23,18,13,8,3,24,19,14,9,4,25,20,15,10,5]).reshape(5,5)
-        self.board_180=np.array(list(range(25, 0, -1))).reshape(5,5)
-        self.board_270=np.array([5,10,15,20,25,4,9,14,19,24,3,8,13,18,23,2,7,12,17,22,1,6,11,16,21]).reshape(5,5)
-        self.mirror_board=np.array([21,22,23,24,25,16,17,18,19,20,11,12,13,14,15,6,7,8,9,10,1,2,3,4,5]).reshape(5,5)
-        self.mirror_board_90=np.array([25,20,15,10,5,24,19,14,9,4,23,18,13,8,3,22,17,12,7,2,21,16,11,6,1]).reshape(5,5)
-        self.mirror_board_180=np.array([5,4,3,2,1,10,9,8,7,6,15,14,13,12,11,20,19,18,17,16,25,24,23,22,21]).reshape(5,5)
-        self.mirror_board_270=np.array([1,6,11,16,21,2,7,12,17,22,3,8,13,18,23,4,9,14,19,24,5,10,15,20,25]).reshape(5,5)
-        self.all=[self.board,self.board_90,self.board_180,self.board_270,self.mirror_board,self.mirror_board_90,self.mirror_board_180,self.board_270]
+    return State(x = x_coordinates, o = o_coordinates)
+
+def get_coordinates_from_board_positions(board, positions):#trova_coordinate_per_valori(array, insieme_di_valori):
+        #coordinates = [(j, i) for i, row in enumerate(board) for j, val in enumerate(row) if val in positions]
+        cnt = 0
+        coordinates = []
+        rows, cols = np.shape(board)
+        for i in range(rows):
+            for j in range(cols):
+                if board[i, j] in positions:
+                    coordinates.append((j, i))
+                    cnt += 1
+                    if cnt == len(positions):    ### stop condition per migliorare prestazioni
+                        return coordinates
+        return coordinates
+
+def get_board_positions_from_coordinates(board, coordinates):#ottieni_valori_da_coordinate(array, insieme_di_coordinate):
+        positions = [board[y, x] for x, y in coordinates]
+        return positions
+
+       
+class Board():
+    BOARD = np.array(list(range(1, 26))).reshape(5,5)
+    BOARD_90 = np.rot90(BOARD, 1)
+    BOARD_180 = np.rot90(BOARD, 2)
+    BOARD_270 = np.rot90(BOARD, 3)
+    MIRROR_BOARD = np.flip(BOARD, axis=0)
+    MIRROR_BOARD_90 = np.flip(BOARD_90, axis=0)
+    MIRROR_BOARD_180 = np.flip(BOARD_180, axis=0)
+    MIRROR_BOARD_270 = np.flip(BOARD_270, axis=0)
+    ALL = [BOARD, BOARD_90, BOARD_180, BOARD_270, MIRROR_BOARD, MIRROR_BOARD_90, MIRROR_BOARD_180, MIRROR_BOARD_270]
+
+
+class CustomState():
+    def __init__(self, state=None):
+        if state == None:
+            self.state = State(x = set(), o = set())
+        else:
+            self.state = state     
+        #self.board = np.full((5, 5), -1)    
+
     def __eq__(self, other_state):
         #To see if one representation is equivalent to another one we extract indices in the 'MAGIC' board 
         #and then we search those indexes in all magic boards to extract the equivalent representations
         #If one is equivalent to other_state, the two state are the same
 
-        a=self.get_equivalent()
-        b=other_state.get_equivalent()
-
-        return (a.x==b.x and a.o==b.o)
+        current_state = self.get_equivalent()
+        other_state = other_state.get_equivalent()
+        return current_state.x == other_state.x and current_state.o == other_state.o
+    
     def __hash__(self):
-        a=self.get_equivalent()
-        #print("my a is this:", a)
-        return hash(str(a))
+        return hash(str(self.get_equivalent()))
+    
     def __str__(self):
-        return str(self.current)
+        return str(self.state)
 
-    def get_equivalent(self):
-        _tmp = namedtuple('state', ['x', 'o'])
-        State = namedtuple('state', ['x', 'o'])
+    def get_equivalent(self):    ##### Controllare
         elenco_ordinato=[]
         """
         funziona cosi:
@@ -64,31 +86,102 @@ class Boards_numpy():
         -da i valori ottenuti dalla matrice i ottengo le coordinate sulla board principale
         -questa è una possibile configurazione
         """
-        for matrix in self.all:
-            tmp_x=ottieni_valori_da_coordinate(matrix,self.current.x)
-            tmp_x=trova_coordinate_per_valori(self.board,tmp_x)
-            tmp_o=ottieni_valori_da_coordinate(matrix,self.current.o)
-            tmp_o=trova_coordinate_per_valori(self.board,tmp_o)
+        for board in Board.ALL:
+            tmp_x = get_board_positions_from_coordinates(board, self.state.x)
+            tmp_x = get_coordinates_from_board_positions(Board.BOARD, tmp_x)
+            tmp_o = get_board_positions_from_coordinates(board, self.state.o)
+            tmp_o = get_coordinates_from_board_positions(Board.BOARD,tmp_o)
 
-            elenco_ordinato.append(deepcopy(State(x=tmp_x,o=tmp_o)))
-        
+            elenco_ordinato.append(deepcopy(State(x = tmp_x, o = tmp_o)))
         
         elenco_ordinato = sorted(elenco_ordinato, key=lambda state: (sorted(state.x), sorted(state.o)))
-        #print("\n",elenco_ordinato)
 
         # Crea nuove namedtuple con le tuple ordinate
-        elenco_ordinato = [State(x=sorted(state.x), o=sorted(state.o)) for state in elenco_ordinato]#riordino le tuple anche
-        #print("\n",elenco_ordinato)
+        elenco_ordinato = [State(x = sorted(state.x), o = sorted(state.o)) for state in elenco_ordinato]#riordino le tuple anche
         return elenco_ordinato[0]
     
 
+class RandomPlayer(Player):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def make_move(self, game: 'Game') -> tuple[tuple[int, int], Move]:
+        from_pos = (random.randint(0, 4), random.randint(0, 4))
+        move = random.choice([Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT])
+        return from_pos, move
+
+
+def print_dictionary(dictionary, level=0):
+        spaces = "  " * level
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                print(f"{spaces}{key}:")
+                print_dictionary(value, level + 1)
+            else:
+                print(f"{spaces}{key}: {value}")
+
+
+class Q_learing():
+    def __init__(self, steps, learning_rate, discount_factor):
+        self.value_dictionary = {}
+        self.steps = steps
+        self.learning_rate = learning_rate
+        self.discount_factor = discount_factor
+
+    def train(self):
+        players = [RandomPlayer(), RandomPlayer()]
+       
+        for _ in tqdm(range(self.steps)):
+            game = Game()
+            winner = -1
+            current_state = CustomState()
+            next_state = CustomState()
+
+            while winner < 0:
+                game.current_player_idx += 1
+                game.current_player_idx %= len(players)
+                current_state.state = get_coordinates(game.get_board())
+                current_state.state = current_state.get_equivalent()
+                ok = False
+
+                while not ok:
+                    from_pos, slide = players[game.get_current_player()].make_move(game)
+                    ok = game.__move(from_pos, slide, game.get_current_player())
+                    if ok:
+                        next_state.state = get_coordinates(game.get_board())
+                        next_state.state = next_state.get_equivalent()
+
+                winner = game.check_winner()
+                if winner == 0:
+                    reward = 1
+                elif winner == 1:
+                    reward = -1
+                else:       
+                    reward = 0
+
+                action = str(from_pos) + " " + str(slide)
+
+                if current_state not in self.value_dictionary:
+                    self.value_dictionary[current_state]={action:0.}
+                elif action not in self.value_dictionary[current_state]:            ## USIAMO DEFAULTDICT
+                    self.value_dictionary[current_state][action] = 0. 
+
+                if next_state not in self.value_dictionary:
+                    self.value_dictionary[next_state]={action:0.}
+                elif action not in self.value_dictionary[next_state]:
+                        self.value_dictionary[next_state][action] = 0. 
+
+                if self.current_player_idx==0:
+                    self.value_dictionary[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary[current_state][action] + 
+                            self.learning_rate * (reward + self.discount_factor * max(self.value_dictionary[next_state].values())))
+                else:
+                    self.value_dictionary[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary[current_state][action] + 
+                            self.learning_rate * (reward + self.discount_factor * min(self.value_dictionary[next_state].values())))
+
+        print_dictionary(self.value_dictionary)
+        return self.value_dictionary
     
-def trova_coordinate_per_valori(array, insieme_di_valori):
-        coordinate = [(i, j) for i, row in enumerate(array) for j, val in enumerate(row) if val in insieme_di_valori]
-        return coordinate
-def ottieni_valori_da_coordinate(array, insieme_di_coordinate):
-        valori = [array[coord] for coord in insieme_di_coordinate]
-        return valori
+
 
 
         
