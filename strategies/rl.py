@@ -140,16 +140,25 @@ class Q_learing():
             while winner < 0:
                 game.current_player_idx += 1
                 game.current_player_idx %= len(players)
-                current_state.state = get_coordinates(game.get_board())
-                current_state.state = current_state.get_equivalent()
+                
                 ok = False
 
                 while not ok:
-                    from_pos, slide = players[game.get_current_player()].make_move(game)
-                    ok = game.__move(from_pos, slide, game.get_current_player())
-                    if ok:
-                        next_state.state = get_coordinates(game.get_board())
-                        next_state.state = next_state.get_equivalent()
+                    '''from_pos, slide = players[game.get_current_player()].make_move(game)
+                    current_state.state = get_coordinates(game.get_board())
+                    current_state.state = current_state.get_equivalent()
+                    ok = game.move(from_pos, slide, game.get_current_player())
+                    print(ok)
+                    next_state.state = get_coordinates(game.get_board())
+                    next_state.state = next_state.get_equivalent()'''
+
+                    from_pos,slide=players[game.current_player_idx].make_move(game)
+                    current_state.state=get_coordinates(game.get_board())
+                    current_state.state=current_state.get_equivalent()
+                    tmp=game.move(from_pos,slide,game.current_player_idx)
+                    next_state.state=get_coordinates(game.get_board())
+                    next_state.state=next_state.get_equivalent()
+                    ok=tmp
 
                 winner = game.check_winner()
                 if winner == 0:
@@ -171,7 +180,7 @@ class Q_learing():
                 elif action not in self.value_dictionary[next_state]:
                         self.value_dictionary[next_state][action] = 0. 
 
-                if self.current_player_idx==0:
+                if game.get_current_player() == 0:
                     self.value_dictionary[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary[current_state][action] + 
                             self.learning_rate * (reward + self.discount_factor * max(self.value_dictionary[next_state].values())))
                 else:

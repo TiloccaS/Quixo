@@ -3,7 +3,6 @@ from copy import deepcopy
 from enum import Enum
 import numpy as np
 from collections import namedtuple
-from strategies.rl import Boards_numpy
 from tqdm import tqdm
 from itertools import product
 import random
@@ -114,8 +113,10 @@ class Game(object):
             if not acceptable:
                 self._board[(from_pos[1], from_pos[0])] = deepcopy(prev_value)
         return acceptable
+    
     def move(self, from_pos: tuple[int, int], slide: Move, player_id: int) -> bool:
-        '''Perform a move'''
+        return self.__move(from_pos, slide, player_id)
+        '''
         if player_id > 2:
             return False
         # Oh God, Numpy arrays
@@ -126,6 +127,7 @@ class Game(object):
             if not acceptable:
                 self._board[(from_pos[1], from_pos[0])] = deepcopy(prev_value)
         return acceptable
+        '''
 
     def __take(self, from_pos: tuple[int, int], player_id: int) -> bool:
         '''Take piece'''
