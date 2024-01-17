@@ -73,7 +73,6 @@ class CustomState():
         return (a.x==b.x and a.o==b.o)
     def __hash__(self):
         a=self.get_equivalent()
-        #print("my a is this:", a)
         return hash(str(a))
     def __str__(self):
         return str(self.state)
@@ -131,12 +130,12 @@ class Q_learing():
 
     def train(self):
         players = [RandomPlayer(), RandomPlayer()]
-        game = Game()
 
         for _ in tqdm(range(self.steps)):
             winner = -1
             current_state = CustomState()
             next_state = CustomState()
+            game = Game()
 
             while winner < 0:
                 game.current_player_idx += 1
