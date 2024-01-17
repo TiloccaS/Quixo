@@ -67,13 +67,14 @@ class CustomState():
         #and then we search those indexes in all magic boards to extract the equivalent representations
         #If one is equivalent to other_state, the two state are the same
 
-        current_state = self.get_equivalent()
-        other_state = other_state.get_equivalent()
-        return current_state.x == other_state.x and current_state.o == other_state.o
-    
+        a=self.get_equivalent()
+        b=other_state.get_equivalent()
+
+        return (a.x==b.x and a.o==b.o)
     def __hash__(self):
-        return hash(str(self.get_equivalent()))
-    
+        a=self.get_equivalent()
+        #print("my a is this:", a)
+        return hash(str(a))
     def __str__(self):
         return str(self.state)
 
@@ -130,9 +131,9 @@ class Q_learing():
 
     def train(self):
         players = [RandomPlayer(), RandomPlayer()]
-       
+        game = Game()
+
         for _ in tqdm(range(self.steps)):
-            game = Game()
             winner = -1
             current_state = CustomState()
             next_state = CustomState()
@@ -140,7 +141,9 @@ class Q_learing():
             while winner < 0:
                 game.current_player_idx += 1
                 game.current_player_idx %= len(players)
-                
+                current_state = CustomState()
+                next_state = CustomState()
+
                 ok = False
 
                 while not ok:
@@ -160,10 +163,10 @@ class Q_learing():
                     next_state.state=next_state.get_equivalent()
                     ok=tmp
 
-                winner = game.check_winner()
-                if winner == 0:
+                reward = game.check_winner()
+                if reward == 0:
                     reward = 1
-                elif winner == 1:
+                elif reward == 1:
                     reward = -1
                 else:       
                     reward = 0
@@ -186,7 +189,7 @@ class Q_learing():
                 else:
                     self.value_dictionary[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary[current_state][action] + 
                             self.learning_rate * (reward + self.discount_factor * min(self.value_dictionary[next_state].values())))
-
+                winner=game.check_winner()
         print_dictionary(self.value_dictionary)
         return self.value_dictionary
     
