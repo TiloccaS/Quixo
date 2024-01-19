@@ -1,5 +1,5 @@
 from strategies.utils import RandomPlayer, CustomGame
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from copy import deepcopy
 
 import dill
@@ -108,7 +108,7 @@ class Q_learing():
         self.max_steps = max_steps
 
         if pretrain_path is None:
-            self.value_dictionary = {}
+            self.value_dictionary = defaultdict(lambda: defaultdict(float))
             self.tot_steps = 0
         else:
             with open(pretrain_path, 'rb') as f:
@@ -158,9 +158,9 @@ class Q_learing():
                 else:       
                     reward = 0
 
-                action = str(from_pos) + " " + str(slide)
+                action = str(from_pos) + "-" + str(slide)
 
-                if current_state not in self.value_dictionary:
+                '''if current_state not in self.value_dictionary:
                     self.value_dictionary[current_state]={action:0.}
                 elif action not in self.value_dictionary[current_state]:            ## USIAMO DEFAULTDICT
                     self.value_dictionary[current_state][action] = 0. 
@@ -168,14 +168,20 @@ class Q_learing():
                 if next_state not in self.value_dictionary:
                     self.value_dictionary[next_state]={action:0.}
                 elif action not in self.value_dictionary[next_state]:
-                        self.value_dictionary[next_state][action] = 0. 
+                        self.value_dictionary[next_state][action] = 0.'''
+                
+                
+                if not self.value_dictionary[next_state]:
+                    values = [0]
+                else:
+                    values = self.value_dictionary[next_state].values()
 
                 if game.get_current_player() == 0:
                     self.value_dictionary[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary[current_state][action] + 
-                            self.learning_rate * (reward + self.discount_factor * max(self.value_dictionary[next_state].values())))
+                            self.learning_rate * (reward + self.discount_factor * max(values)))
                 else:
                     self.value_dictionary[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary[current_state][action] + 
-                            self.learning_rate * (reward + self.discount_factor * min(self.value_dictionary[next_state].values())))
+                            self.learning_rate * (reward + self.discount_factor * min(values)))
 
             if  len(self.value_dictionary) <= dict_lenght:
                 cnt += 1
