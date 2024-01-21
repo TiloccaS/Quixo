@@ -17,7 +17,17 @@ class MinMaxPlayer(Player):
     def __init__(self) -> None:
         super().__init__()
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
-        return wrap_min_max(game,game.current_player_idx)
+        ply = wrap_min_max(game,game.current_player_idx)
+        
+        if ply[0] is None:
+            ## Random play
+            from_pos = (random.randint(0, 4), random.randint(0, 4))
+            move = random.choice([Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT])
+        else:
+            from_pos = ply[0]
+            move = ply[1]
+        
+        return from_pos, move
 
 class CustomGame(Game):
     def __init__(self) -> None:
