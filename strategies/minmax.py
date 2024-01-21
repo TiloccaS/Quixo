@@ -2,8 +2,8 @@ from game import Game,Move
 from copy import deepcopy
 import sys
 import numpy as np
-
-
+def wrap_min_max(board, player_id):
+    return minmax(board,player_id)[0]
 def minmax(board, player_id, depth=5, alpha=-sys.maxsize, beta=sys.maxsize):
     val = board.check_winner()
     possible = board.getPossibleMoves(player_id)
@@ -35,14 +35,19 @@ def minmax(board, player_id, depth=5, alpha=-sys.maxsize, beta=sys.maxsize):
         
         if alpha >= beta:
             break  # Taglio beta
-        
+   
     return max(evaluations, key=lambda k: k[1])
 
 if __name__ == '__main__':
-   game=Game()
-   game._board=np.array([[1, 0, 1, 0, 1],
-                        [0, 1, 0, 1, 0],
-                        [1, 0, 1, 0, 1],
-                        [0, 1, 0, 1, 0],
-                        [0, 1, 1, 1, 0 ]])
-   print(minmax(game,1))
+    from strategies.utils import CustomGame
+    from strategies.utils import MinMaxPlayer,RandomPlayer
+    cnt=0
+    for i in range(100):
+        game=CustomGame()
+        player1=MinMaxPlayer()
+        player2=RandomPlayer()
+        winner=game.play(player1,player2)
+        if winner==1:
+            cnt+=1
+    
+    print(cnt)
