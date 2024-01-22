@@ -4,7 +4,7 @@ import sys
 import numpy as np
 def wrap_min_max(board, player_id):
     return minmax(board,player_id)[0]
-def minmax(board, player_id, depth=2, alpha=-sys.maxsize, beta=sys.maxsize):
+def minmax(board, player_id, depth=4, alpha=-sys.maxsize, beta=sys.maxsize):
     val = board.check_winner()
     best_ply = None
     possible = board.getPossibleMoves(player_id)
@@ -44,7 +44,7 @@ def minmax(board, player_id, depth=2, alpha=-sys.maxsize, beta=sys.maxsize):
         if alpha >= beta:
             break  # Taglio beta
    
-    print(best_ply, val)
+    #print(best_ply, val)
     return best_ply, -val#max(evaluations, key=lambda k: k[1])
 
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ class MinMaxPlayer(Player):
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         ply = wrap_min_max(game,game.current_player_idx)
         
-        if ply[0] is None:
+        if ply is None:
             ## Random play
             from_pos = (random.randint(0, 4), random.randint(0, 4))
             move = random.choice([Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT])
