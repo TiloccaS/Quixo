@@ -1,9 +1,9 @@
-from game import Game, Player, Move
-
 import random
+from game import Game, Player, Move
 from itertools import product
 from copy import deepcopy
 from strategies.minmax import wrap_min_max
+
 class RandomPlayer(Player):
     def __init__(self) -> None:
         super().__init__()
@@ -16,8 +16,10 @@ class RandomPlayer(Player):
 class MinMaxPlayer(Player):
     def __init__(self) -> None:
         super().__init__()
+
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
-        ply = wrap_min_max(game,game.current_player_idx)
+        custom_game = CustomGame(game)
+        ply = wrap_min_max(custom_game)
         
         if ply is None:
             ## Random play
@@ -30,19 +32,25 @@ class MinMaxPlayer(Player):
         return from_pos, move
 
 class CustomGame(Game):
-    def __init__(self) -> None:
+    def __init__(self, game=None) -> None:
         super().__init__()
+        if game is not None:
+            self._board = game.get_board()
+            self.current_player_idx = game.get_current_player()
 
     def move(self, from_pos: tuple[int, int], slide: Move, player_id: int) -> bool:
         return super()._Game__move(from_pos, slide, player_id)
-    def getPossibleMoves(self,player_id:int):
-        possible_moves=[]
+    
+    def getPossibleMoves(self, player_id):
+        possible_moves = []
         first_two_numbers = range(5)
         last_number = range(4)
         all_combinations = list(product(first_two_numbers, first_two_numbers, last_number))
-        for a in all_combinations:
-            tmp=deepcopy(self)
-            if tmp.move((a[0],a[1]),Move(a[2]),player_id)==True:
-                possible_moves.append(((a[0],a[1]),Move(a[2])))
+
+        for c in all_combinations:
+            tmp = deepcopy(self)
+            if tmp.move((c[0], c[1]), Move(c[2]), player_id) == True:
+                possible_moves.append(((c[0], c[1]), Move(c[2])))
+
         random.shuffle(possible_moves)
         return possible_moves
