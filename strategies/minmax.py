@@ -20,6 +20,11 @@ def calculate_occurences(board, player_id):
             ok = y[-1] - y[0] == len(y) - 1
             if ok:
                 occCount += 1
+
+    diag_princ = [board[x, x] for x in range(board.shape[0])]
+    z = np.where(diag_princ == player_id)
+    t = np.where(diag_sec == player_id)
+    diag_sec = [board[x, -(x + 1)] for x in range(board.shape[0])]
     return occCount
 
 def fitness(game, player_id, depth):

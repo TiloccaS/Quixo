@@ -1,7 +1,6 @@
 import random
 import dill
 from game import Game, Move, Player
-from tqdm.auto import tqdm
 from strategies.rl import Q_learing, CustomState,  get_coordinates
 
 class RandomPlayer(Player):
@@ -31,6 +30,7 @@ class RLPlayer(Player):
             steps, self.value_dictionary = ql.train()
 
             if save_model_path is not None:
+                print(len(self.value_dictionary))
                 d = {'steps': steps, 'value_dictionary': self.value_dictionary}
 
                 with open(save_model_path, 'wb') as outfile:
@@ -66,14 +66,16 @@ class RLPlayer(Player):
             
         return from_pos, move
     
-player1 = RLPlayer(pretrain_path='train_results/rl.pik')
+player1 = RLPlayer(pretrain_path='rl.pik')
 player2 = RandomPlayer()
 
+print('Testing')
 
 win = 0
 lose = 0
 draw = 0
-for _ in tqdm(range(5)):
+for i in range(10):
+    print(i)
     g = Game()
     winner = g.play(player1, player2)
     if winner == 0:
