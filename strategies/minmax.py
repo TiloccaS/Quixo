@@ -12,28 +12,38 @@ def calculate_occurences(board, player_id):
         y = np.where(col == player_id)[0]
 
         if len(x) == 4:
-            ok = (x[-1] - x[0] == len(x) - 1)
+            ok = (x[-1]!=player_id or x[0]!= player_id)
             if ok:
                 occCount += 1
 
         if len(y) == 4:
-            ok = y[-1] - y[0] == len(y) - 1
+            ok = (y[-1]!=player_id or y[0]!= player_id)
             if ok:
                 occCount += 1
 
     diag_princ = [board[x, x] for x in range(board.shape[0])]
     z = np.where(diag_princ == player_id)
-    t = np.where(diag_sec == player_id)
+  
+    if len(z) == 4:
+            ok = (z[-1]!=player_id or z[0]!= player_id)
+            if ok:
+                occCount += 1
     diag_sec = [board[x, -(x + 1)] for x in range(board.shape[0])]
+    t = np.where(diag_sec == player_id)
+    if len(t) == 4:
+            ok = (t[-1]!=player_id or t[0]!= player_id)
+            if ok:
+                occCount += 1
+  
     return occCount
 
 def fitness(game, player_id, depth):
     winner = game.check_winner()
 
     if winner == 0:     ## Maximizer won (X)
-        return 100 + depth
+        return 100 
     elif winner == 1:   ## Minimizer won (O)
-        return -100 - depth
+        return -100 
     else:
         value = 0
         board = game.get_board()

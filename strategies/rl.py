@@ -17,9 +17,9 @@ def get_coordinates(board):
     for i in range(rows):
         for j in range(cols):
             if board[i, j] == 0:
-                x_coordinates.add((j, i))    
+                x_coordinates.add((i, j))    
             elif board[i, j] == 1:
-                o_coordinates.add((j, i))
+                o_coordinates.add((i, j))
 
     return State(x = x_coordinates, o = o_coordinates)
 
@@ -30,14 +30,17 @@ def get_coordinates_from_board_positions(board, positions):
         for i in range(rows):
             for j in range(cols):
                 if board[i, j] in positions:
-                    coordinates.append((j, i))
+                    coordinates.append((i, j))
                     cnt += 1
                     if cnt == len(positions):   
                         return coordinates
         return coordinates
 
 def get_board_positions_from_coordinates(board, coordinates):
-        positions = [board[y, x] for x, y in coordinates]
+        #print(board)
+        positions = [board[x,y] for x, y in coordinates]
+        #print(coordinates)
+        #print(positions)
         return positions
 
        
@@ -85,13 +88,14 @@ class CustomState():
             tmp_o = get_coordinates_from_board_positions(Board.BOARD,tmp_o)
 
             ordered_list.append(deepcopy(State(x = tmp_x, o = tmp_o)))
-        
+       
         ordered_list = sorted(ordered_list, key=lambda state: (sorted(state.x), sorted(state.o)))
+       
         ordered_list = [State(x = sorted(state.x), o = sorted(state.o)) for state in ordered_list]
-
+       
         return ordered_list[0]
 
-def print_dictionary(dictionary, level=0):
+def print_dictionary(dictionary, level=0,str=""):
         spaces = "  " * level
         for key, value in dictionary.items():
             if isinstance(value, dict):
@@ -100,22 +104,62 @@ def print_dictionary(dictionary, level=0):
             else:
                 print(f"{spaces}{key}: {value}")
 
+def print_dictionary_to_file(dictionary, filename="output.txt", level=0, str=""):
+    spaces = "  " * level
+    with open(filename, 'a') as file:
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                file.write(f"{spaces}{key}:\n")
+                print_dictionary_to_file(value, filename, level + 1)
+            else:
+                file.write(f"{spaces}{key}: {value}\n")
+
+
+
+def costruisci_array(coordinate):
+    array = np.full((5, 5), -1)  # Creazione di un array 5x5 inizializzato a -1
+
+    for x, y in coordinate.x:
+        array[x, y] = 0  # Imposta 0 se la coordinata è in x
+
+    for x, y in coordinate.o:
+        array[x, y] = 1  # Imposta 1 se la coordinata è in o
+
+    return array
 
 class Q_learing():
-    def __init__(self, learning_rate, discount_factor, pretrain_path=None, max_steps=None):
+    def __init__(self, learning_rate, discount_factor, pretrain_path_x=None,pretrain_path_o=None, max_steps=None):
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
         self.max_steps = max_steps
 
-        if pretrain_path is None:
-            self.value_dictionary = defaultdict(lambda: defaultdict(float))
+        if pretrain_path_x is None:
+            self.value_dictionary_x = defaultdict(lambda: defaultdict(float))
+            #self.value_dictionary_o = defaultdict(lambda: defaultdict(float))
+
             self.tot_steps = 0
         else:
-            with open(pretrain_path, 'rb') as f:
+            with open(pretrain_path_x, 'rb') as f:
                 d = dill.load(f)
 
-            self.value_dictionary = d['value_dictionary']
+            self.value_dictionary_x = d['value_dictionary']
+
+            #self.value_dictionary_o = d['value_dictionary']
+
             self.tot_steps = d['steps']
+
+        if pretrain_path_o is None:
+            self.value_dictionary_o = defaultdict(lambda: defaultdict(float))
+
+            self.tot_steps = 0
+        else:
+            with open(pretrain_path_o, 'rb') as f:
+                d = dill.load(f)
+
+            self.value_dictionary_o = d['value_dictionary']
+
+
+            self.tot_steps += d['steps']
         
     def train(self):
         cnt = 0
@@ -129,7 +173,9 @@ class Q_learing():
         for _ in tqdm(generator()):
             steps += 1
             winner = -1
-            dict_lenght = len(self.value_dictionary)
+            dict_lenght_x = len(self.value_dictionary_x)
+            dict_lenght_o = len(self.value_dictionary_o)
+
             game = CustomGame()
 
             
@@ -139,17 +185,33 @@ class Q_learing():
                 current_state = CustomState()
                 current_state.state = get_coordinates(game.get_board())
                 current_state.state = current_state.get_equivalent()
+                board_equivalent=costruisci_array(current_state.state)
+                #game.print()
+                game.modify_board(board_equivalent)
+                #print(current_state.state)
+                #game.print()
+                #print("end")
                 next_state = CustomState()
+                next_state.state=deepcopy(current_state)
 
                 ok = False
 
                 while not ok:
                     from_pos, slide = players[game.get_current_player()].make_move(game)
                     ok = game.move(from_pos, slide, game.get_current_player())
+                    #from_pos=from_pos[::-1]
                     if ok:
+                        
                         next_state.state = get_coordinates(game.get_board())
                         next_state.state = next_state.get_equivalent()
-
+                        #board_equivalent=costruisci_array(next_state.state)
+                        #game.modify_board(board_equivalent)
+                        """print(tmp)
+                        print(current_state.state)
+                        print(from_pos,slide)
+                        print(next_state.state)
+                        print(game.current_player_idx)"""
+                            
                 winner = game.check_winner()
                 if winner == 0:
                     reward = 1
@@ -170,20 +232,24 @@ class Q_learing():
                 elif action not in self.value_dictionary[next_state]:
                         self.value_dictionary[next_state][action] = 0.'''
                 
-                
-                if not self.value_dictionary[next_state]:
-                    values = [0]
+                if game.get_current_player()==0:
+                    if not self.value_dictionary_x[next_state]:
+                        values = [0]
+                    else:
+                        values = self.value_dictionary_x[next_state].values()
                 else:
-                    values = self.value_dictionary[next_state].values()
-
+                    if not self.value_dictionary_o[next_state]:
+                        values = [0]
+                    else:
+                        values = self.value_dictionary_o[next_state].values()
                 if game.get_current_player() == 0:
-                    self.value_dictionary[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary[current_state][action] + 
+                    self.value_dictionary_x[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary_x[current_state][action] + 
                             self.learning_rate * (reward + self.discount_factor * max(values)))
                 else:
-                    self.value_dictionary[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary[current_state][action] + 
+                    self.value_dictionary_o[current_state][action] = ((1 - self.learning_rate) * self.value_dictionary_o[current_state][action] + 
                             self.learning_rate * (reward + self.discount_factor * min(values)))
 
-            if  len(self.value_dictionary) <= dict_lenght:
+            if  (len(self.value_dictionary_x) <= dict_lenght_x) and (len(self.value_dictionary_o) <= dict_lenght_o):
                 cnt += 1
                 if cnt == 100:
                     ## Early stop
@@ -194,8 +260,10 @@ class Q_learing():
             if self.max_steps is not None:
                 if steps == self.max_steps:
                     break
-                
-        return self.tot_steps + steps, self.value_dictionary
+
+  
+        #print_dictionary(self.value_dictionary)
+        return self.tot_steps + steps, self.value_dictionary_x
     
 
 

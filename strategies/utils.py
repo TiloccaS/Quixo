@@ -4,6 +4,7 @@ from itertools import product
 from copy import deepcopy
 from strategies.minmax import wrap_min_max
 
+
 class RandomPlayer(Player):
     def __init__(self) -> None:
         super().__init__()
@@ -54,3 +55,5 @@ class CustomGame(Game):
 
         random.shuffle(possible_moves)
         return possible_moves
+    def modify_board(self,board):
+        self._board=board
