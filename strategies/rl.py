@@ -263,7 +263,7 @@ class Q_learing():
 
   
         #print_dictionary(self.value_dictionary)
-        return self.tot_steps + steps, self.value_dictionary_x
+        return self.tot_steps + steps,self.value_dictionary_x, self.value_dictionary_o
     
 
 

@@ -30,20 +30,20 @@ class RLPlayer(Player):
         super().__init__()
         if train:
             ql = Q_learing(learning_rate, discount_factor, pretrain_path_x=pretrain_path_x,pretrain_path_o=pretrain_path_x, max_steps=max_steps)
-            steps, self.value_dictionary_x = ql.train()
-            self.value_dictionary_o=self.value_dictionary_x
+            steps, self.value_dictionary_x,self.value_dictionary_o = ql.train()
+            #self.value_dictionary_x=self.value_dictionary_o
             if save_model_path_x is not None:
                 print(len(self.value_dictionary_x))
                 d = {'steps': steps/2, 'value_dictionary': self.value_dictionary_x}
 
-                with open(save_model_path_x, 'wb') as outfile:
-                    dill.dump(d, outfile)
+                with open(save_model_path_x, 'wb') as outfile_x:
+                    dill.dump(d, outfile_x)
             if save_model_path_o is not None:
                 print(len(self.value_dictionary_o))
                 d = {'steps': steps/2, 'value_dictionary': self.value_dictionary_o}
 
-                with open(save_model_path_o, 'wb') as outfile:
-                    dill.dump(d, outfile)
+                with open(save_model_path_o, 'wb') as outfile_o:
+                    dill.dump(d, outfile_o)
         elif not train and pretrain_path_x is not None and pretrain_path_o is not None:
             with open(pretrain_path_x, 'rb') as f:
                 d = dill.load(f)
@@ -63,7 +63,7 @@ class RLPlayer(Player):
         game_tmp.modify_board(costruisci_array(deepcopy(current_state.state)))
 
         #print_dictionary(self.value_dictionary)
-        if game_tmp.get_current_player==0:
+        if game.get_current_player()==0:
                 value_dictionary=self.value_dictionary_x
 
         else:
@@ -88,14 +88,7 @@ class RLPlayer(Player):
                 else:
                     move = Move.BOTTOM
                 game._board=game_tmp._board
-                ok= game_tmp.move(from_pos=from_pos,slide=move,player_id=game_tmp.current_player_idx)
-                if ok==False:
-                    game.print()
-                    print(move,from_pos,ok,game.get_current_player())
-
-                if from_pos==tuple((0,4)) or from_pos==tuple((4,0)) :
-                    from_pos = (random.randint(0, 4), random.randint(0, 4))
-                    move = random.choice([Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT])
+           
             else:
                  from_pos = (random.randint(0, 4), random.randint(0, 4))
                  move = random.choice([Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT])
