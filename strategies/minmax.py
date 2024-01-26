@@ -12,12 +12,12 @@ def calculate_occurences(board, player_id):
         y = np.where(col == player_id)[0]
 
         if len(x) == 4:
-            ok = (x[-1]!=player_id or x[0]!= player_id)
+            ok = (x[-1]!=player_id or x[0]!= player_id) #means that there are 4 consecutive checkers
             if ok:
                 occCount += 1
 
         if len(y) == 4:
-            ok = (y[-1]!=player_id or y[0]!= player_id)
+            ok = (y[-1]!=player_id or y[0]!= player_id)#means that there are 4 consecutive checkers
             if ok:
                 occCount += 1
 
@@ -45,10 +45,13 @@ def fitness(game, player_id, depth):
     elif winner == 1:   ## Minimizer won (O)
         return -100 
     else:
+
+        ##if there isn't a winner we search evaluate using the occurences that there are in row or column or diagonal
         value = 0
         board = game.get_board()
         occValue = calculate_occurences(board, player_id) * 5
-
+        
+        #if you take the center of board you have a little reward
         if board[2, 2] == 0:
             value += 20
         elif board[2, 2] == 1:
@@ -58,11 +61,11 @@ def fitness(game, player_id, depth):
             occValue *= -1
 
         frequency = np.unique(board, return_counts=True)
-        uniqueCount = len(frequency[0])
-        if uniqueCount == 3:      ## Contains blank pieces
+        uniqueCount = len(frequency[0])#in position 0 there are [-1(if there are space not picked),0,1]
+        if uniqueCount == 3: #it means that there are position not selected yet     
             maximizerPieceCount = frequency[1][1]
             minimizerPieceCount = frequency[1][2]
-        elif uniqueCount == 2:
+        elif uniqueCount == 2:#it means that all position are picked
             maximizerPieceCount = frequency[1][0]
             minimizerPieceCount = frequency[1][1]
 

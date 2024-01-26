@@ -104,19 +104,9 @@ def print_dictionary(dictionary, level=0,str=""):
             else:
                 print(f"{spaces}{key}: {value}")
 
-def print_dictionary_to_file(dictionary, filename="output.txt", level=0, str=""):
-    spaces = "  " * level
-    with open(filename, 'a') as file:
-        for key, value in dictionary.items():
-            if isinstance(value, dict):
-                file.write(f"{spaces}{key}:\n")
-                print_dictionary_to_file(value, filename, level + 1)
-            else:
-                file.write(f"{spaces}{key}: {value}\n")
 
 
-
-def costruisci_array(coordinate):
+def build_board_from_coordinates(coordinate):
     array = np.full((5, 5), -1)  # Creazione di un array 5x5 inizializzato a -1
 
     for x, y in coordinate.x:
@@ -135,30 +125,22 @@ class Q_learing():
 
         if pretrain_path_x is None:
             self.value_dictionary_x = defaultdict(lambda: defaultdict(float))
-            #self.value_dictionary_o = defaultdict(lambda: defaultdict(float))
-
             self.tot_steps = 0
         else:
             with open(pretrain_path_x, 'rb') as f:
                 d = dill.load(f)
 
             self.value_dictionary_x = d['value_dictionary']
-
-            #self.value_dictionary_o = d['value_dictionary']
-
             self.tot_steps = d['steps']
 
         if pretrain_path_o is None:
             self.value_dictionary_o = defaultdict(lambda: defaultdict(float))
-
             self.tot_steps = 0
         else:
             with open(pretrain_path_o, 'rb') as f:
                 d = dill.load(f)
 
             self.value_dictionary_o = d['value_dictionary']
-
-
             self.tot_steps += d['steps']
         
     def train(self):
@@ -185,12 +167,8 @@ class Q_learing():
                 current_state = CustomState()
                 current_state.state = get_coordinates(game.get_board())
                 current_state.state = current_state.get_equivalent()
-                board_equivalent=costruisci_array(current_state.state)
-                #game.print()
+                board_equivalent=build_board_from_coordinates(current_state.state)
                 game.modify_board(board_equivalent)
-                #print(current_state.state)
-                #game.print()
-                #print("end")
                 next_state = CustomState()
                 next_state.state=deepcopy(current_state)
 
@@ -199,18 +177,11 @@ class Q_learing():
                 while not ok:
                     from_pos, slide = players[game.get_current_player()].make_move(game)
                     ok = game.move(from_pos, slide, game.get_current_player())
-                    #from_pos=from_pos[::-1]
                     if ok:
                         
                         next_state.state = get_coordinates(game.get_board())
                         next_state.state = next_state.get_equivalent()
-                        #board_equivalent=costruisci_array(next_state.state)
-                        #game.modify_board(board_equivalent)
-                        """print(tmp)
-                        print(current_state.state)
-                        print(from_pos,slide)
-                        print(next_state.state)
-                        print(game.current_player_idx)"""
+                       
                             
                 winner = game.check_winner()
                 if winner == 0:
@@ -221,16 +192,6 @@ class Q_learing():
                     reward = 0
 
                 action = str(from_pos) + "-" + str(slide)
-
-                '''if current_state not in self.value_dictionary:
-                    self.value_dictionary[current_state]={action:0.}
-                elif action not in self.value_dictionary[current_state]:            ## USIAMO DEFAULTDICT
-                    self.value_dictionary[current_state][action] = 0. 
-
-                if next_state not in self.value_dictionary:
-                    self.value_dictionary[next_state]={action:0.}
-                elif action not in self.value_dictionary[next_state]:
-                        self.value_dictionary[next_state][action] = 0.'''
                 
                 if game.get_current_player()==0:
                     if not self.value_dictionary_x[next_state]:
@@ -262,7 +223,6 @@ class Q_learing():
                     break
 
   
-        #print_dictionary(self.value_dictionary)
         return self.tot_steps + steps,self.value_dictionary_x, self.value_dictionary_o
     
 
