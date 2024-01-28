@@ -68,6 +68,7 @@ class RLPlayer(Player):
         game_tmp=CustomGame(game)
         current_state = CustomState(get_coordinates(game_tmp.get_board()))
         current_state.state=current_state.get_equivalent()
+        #we use the equivalent represention for extract the equivalnt move
         game_tmp.modify_board(build_board_from_coordinates(deepcopy(current_state.state)))
         if game.get_current_player()==0:
                 value_dictionary=self.value_dictionary_x
@@ -106,48 +107,95 @@ class RLPlayer(Player):
             move = random.choice([Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT])
             self.cnt+=1
         return from_pos, move
+
+def test_rl(args):
+    player1 = RLPlayer(train=args.train,max_steps=args.max_steps,pretrain_path_o=args.pretrain_path_o, pretrain_path_x=args.pretrain_path_x,save_model_path_o=args.save_model_path_o,save_model_path_x=args.save_model_path_x)
+    player2 = RandomPlayer()
+
     
-player1 = RLPlayer(pretrain_path_o='train_results/rl_o.pik', pretrain_path_x='train_results/rl_x.pik')
-player2 = RandomPlayer()
 
-print('Testing')
+    if args.player==1:
+        print('Testing with player 1...')
 
-win = 0
-lose = 0
-draw = 0
-print(player1.cnt)
 
-for i in tqdm(range(1000)):
-    #print(i)
-    g = Game()
-    winner = g.play(player1, player2)
-    if winner == 0:
-        win += 1
-    elif winner == 1:
-        lose += 1
+        win = 0
+        lose = 0
+        draw = 0
+
+        for i in tqdm(range(1000)):
+            #print(i)
+            g = Game()
+            winner = g.play(player1, player2)
+            if winner == 0:
+                win += 1
+            elif winner == 1:
+                lose += 1
+            else:
+                draw += 1
+        print("your player win: ",win," times")
+        print("your player lose: ",lose," times")
+        print("your player draw: ",draw," times")
+    elif args.player==2:
+        print('Testing with player 2...')
+
+
+        win = 0
+        lose = 0
+        draw = 0
+
+        for i in tqdm(range(1000)):
+            #print(i)
+            g = Game()
+            winner = g.play(player2, player1)
+            if winner == 1:
+                win += 1
+            elif winner == 0:
+                lose += 1
+            else:
+                draw += 1
+        print("your player win: ",win," times")
+        print("your player lose: ",lose," times")
+        print("your player draw: ",draw," times")
     else:
-        draw += 1
-print(player1.cnt,"/",player1.tot)
-print(win)
-print(lose)
-print(draw)
+        print('Testing with player 1...')
 
-print('Testing')
 
-win = 0
-lose = 0
-draw = 0
+        win = 0
+        lose = 0
+        draw = 0
 
-for i in tqdm(range(1000)):
-    #print(i)
-    g = Game()
-    winner = g.play(player2, player1)
-    if winner == 0:
-        win += 1
-    elif winner == 1:
-        lose += 1
-    else:
-        draw += 1
-print(win)
-print(lose)
-print(draw)
+        for i in tqdm(range(1000)):
+            #print(i)
+            g = Game()
+            winner = g.play(player1, player2)
+            if winner == 0:
+                win += 1
+            elif winner == 1:
+                lose += 1
+            else:
+                draw += 1
+        print("your player win: ",win," times")
+        print("your player lose: ",lose," times")
+        print("your player draw: ",draw," times")
+
+
+        print('Testing with player 2...')
+
+
+        win = 0
+        lose = 0
+        draw = 0
+
+        for i in tqdm(range(1000)):
+            #print(i)
+            g = Game()
+            winner = g.play(player2, player1)
+            if winner == 1:
+                win += 1
+            elif winner == 0:
+                lose += 1
+            else:
+                draw += 1
+        print("your player win: ",win," times")
+        print("your player lose: ",lose," times")
+        print("your player draw: ",draw," times")

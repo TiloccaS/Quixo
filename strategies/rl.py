@@ -80,6 +80,10 @@ class CustomState():
 
     def get_equivalent(self):
         ordered_list=[]
+        #To use equivalent represention we use board 5x5 where each cell is a number
+        #1. We extract the cell's number from each board giving the coordinates
+        #2.  Then we extract the coordinates of those numbers in the principle board
+        #3. We sort them and we extract the first 
 
         for board in Board.ALL:
             tmp_x = get_board_positions_from_coordinates(board, self.state.x)
@@ -118,11 +122,13 @@ def build_board_from_coordinates(coordinate):
     return array
 
 class Q_learing():
+    #we use 2 dictionary beacause a move of x could be not avaliable for o
+
     def __init__(self, learning_rate, discount_factor, pretrain_path_x=None,pretrain_path_o=None, max_steps=None):
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
         self.max_steps = max_steps
-
+        #we use peakle beacause in this way we can save the class CustomState
         if pretrain_path_x is None:
             self.value_dictionary_x = defaultdict(lambda: defaultdict(float))
             self.tot_steps = 0
@@ -214,6 +220,8 @@ class Q_learing():
 
             if  (len(self.value_dictionary_x) <= dict_lenght_x) and (len(self.value_dictionary_o) <= dict_lenght_o):
                 cnt += 1
+                #if the dictionary not incrase length for 100 step it means that it reach convergence so
+                #it can finish
                 if cnt == 100:
                     ## Early stop
                     break
@@ -221,6 +229,7 @@ class Q_learing():
                 cnt = 0
 
             if self.max_steps is not None:
+                #we can pass for how many epoch we want train
                 if steps == self.max_steps:
                     break
 
