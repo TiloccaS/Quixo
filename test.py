@@ -33,23 +33,30 @@ class RLPlayer(Player):
             ql = Q_learing(learning_rate, discount_factor, pretrain_path_x=pretrain_path_x,pretrain_path_o=pretrain_path_x, max_steps=max_steps)
             steps, self.value_dictionary_x,self.value_dictionary_o = ql.train()
             if save_model_path_x is not None:
+                print('Saving dictionary of x...')
                 print("length of dictionary of x: ",len(self.value_dictionary_x))
                 d = {'steps': steps/2, 'value_dictionary': self.value_dictionary_x}
 
                 with open(save_model_path_x, 'wb') as outfile_x:
                     dill.dump(d, outfile_x)
+
             if save_model_path_o is not None:
+                print('Saving dictionary of o...')
                 print("length of dictionary of o: ",len(self.value_dictionary_o))
                 d = {'steps': steps/2, 'value_dictionary': self.value_dictionary_o}
 
                 with open(save_model_path_o, 'wb') as outfile_o:
                     dill.dump(d, outfile_o)
+
         elif not train and pretrain_path_x is not None and pretrain_path_o is not None:
+            print('Reading dictionary of x...')
             with open(pretrain_path_x, 'rb') as f:
                 d = dill.load(f)
 
             self.value_dictionary_x = d['value_dictionary']
             print("length of dictionary of x: ",len(self.value_dictionary_x))
+
+            print('Reading dictionary of o...')
             with open(pretrain_path_o, 'rb') as f:
                 d = dill.load(f)
 
@@ -100,7 +107,7 @@ class RLPlayer(Player):
             self.cnt+=1
         return from_pos, move
     
-player1 = RLPlayer(pretrain_path_x='rl_x.pik',pretrain_path_o='rl_o.pik',save_model_path_o='rl_o.pik',save_model_path_x='rl_x.pik',max_steps=50000,train=False)
+player1 = RLPlayer(pretrain_path_o='train_results/rl_o.pik', pretrain_path_x='train_results/rl_x.pik')
 player2 = RandomPlayer()
 
 print('Testing')
@@ -110,7 +117,7 @@ lose = 0
 draw = 0
 print(player1.cnt)
 
-for i in tqdm(range(100)):
+for i in tqdm(range(1000)):
     #print(i)
     g = Game()
     winner = g.play(player1, player2)
@@ -121,6 +128,26 @@ for i in tqdm(range(100)):
     else:
         draw += 1
 print(player1.cnt,"/",player1.tot)
+print(win)
+print(lose)
+print(draw)
+
+print('Testing')
+
+win = 0
+lose = 0
+draw = 0
+
+for i in tqdm(range(1000)):
+    #print(i)
+    g = Game()
+    winner = g.play(player2, player1)
+    if winner == 0:
+        win += 1
+    elif winner == 1:
+        lose += 1
+    else:
+        draw += 1
 print(win)
 print(lose)
 print(draw)

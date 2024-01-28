@@ -55,5 +55,6 @@ class CustomGame(Game):
 
         random.shuffle(possible_moves)
         return possible_moves
+    
     def modify_board(self,board):
         self._board=board

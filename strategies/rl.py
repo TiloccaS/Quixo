@@ -17,9 +17,9 @@ def get_coordinates(board):
     for i in range(rows):
         for j in range(cols):
             if board[i, j] == 0:
-                x_coordinates.add((i, j))    
+                x_coordinates.add((j, i))    
             elif board[i, j] == 1:
-                o_coordinates.add((i, j))
+                o_coordinates.add((j, i))
 
     return State(x = x_coordinates, o = o_coordinates)
 
@@ -30,7 +30,7 @@ def get_coordinates_from_board_positions(board, positions):
         for i in range(rows):
             for j in range(cols):
                 if board[i, j] in positions:
-                    coordinates.append((i, j))
+                    coordinates.append((j, i))
                     cnt += 1
                     if cnt == len(positions):   
                         return coordinates
@@ -38,7 +38,7 @@ def get_coordinates_from_board_positions(board, positions):
 
 def get_board_positions_from_coordinates(board, coordinates):
         #print(board)
-        positions = [board[x,y] for x, y in coordinates]
+        positions = [board[y, x] for x, y in coordinates]
         #print(coordinates)
         #print(positions)
         return positions
@@ -110,10 +110,10 @@ def build_board_from_coordinates(coordinate):
     array = np.full((5, 5), -1)  # Creazione di un array 5x5 inizializzato a -1
 
     for x, y in coordinate.x:
-        array[x, y] = 0  # Imposta 0 se la coordinata è in x
+        array[y, x] = 0  # Imposta 0 se la coordinata è in x
 
     for x, y in coordinate.o:
-        array[x, y] = 1  # Imposta 1 se la coordinata è in o
+        array[y, x] = 1  # Imposta 1 se la coordinata è in o
 
     return array
 
@@ -127,6 +127,7 @@ class Q_learing():
             self.value_dictionary_x = defaultdict(lambda: defaultdict(float))
             self.tot_steps = 0
         else:
+            print('Reading dictionary of x...')
             with open(pretrain_path_x, 'rb') as f:
                 d = dill.load(f)
 
@@ -137,6 +138,7 @@ class Q_learing():
             self.value_dictionary_o = defaultdict(lambda: defaultdict(float))
             self.tot_steps = 0
         else:
+            print('Reading dictionary of o...')
             with open(pretrain_path_o, 'rb') as f:
                 d = dill.load(f)
 
