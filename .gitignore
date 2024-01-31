@@ -3,7 +3,5 @@ poetry.lock
 pyproject.toml
 __pycache__/
 strategies/__pycache__/
-rl_dict/rl_o.pik
-rl_dict/rl_x.pik
 train_results/rl_o.pik
 train_results/rl_x.pik

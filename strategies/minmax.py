@@ -1,7 +1,7 @@
-from game import Game
-from copy import deepcopy
 import sys
 import numpy as np
+from game import Game
+from copy import deepcopy
 
 def calculate_occurences(board, player_id):
     occCount = 0
@@ -12,12 +12,12 @@ def calculate_occurences(board, player_id):
         y = np.where(col == player_id)[0]
 
         if len(x) == 4:
-            ok = (x[-1]!=player_id or x[0]!= player_id) #means that there are 4 consecutive checkers
+            ok = (x[-1]!= player_id or x[0] != player_id)       ## means that there are 4 consecutive checkers
             if ok:
                 occCount += 1
 
         if len(y) == 4:
-            ok = (y[-1]!=player_id or y[0]!= player_id)#means that there are 4 consecutive checkers
+            ok = (y[-1]!= player_id or y[0] != player_id)       ## means that there are 4 consecutive checkers
             if ok:
                 occCount += 1
 
@@ -25,19 +25,21 @@ def calculate_occurences(board, player_id):
     z = np.where(diag_princ == player_id)
   
     if len(z) == 4:
-            ok = (z[-1]!=player_id or z[0]!= player_id)
+            ok = (z[-1] != player_id or z[0] != player_id)
             if ok:
                 occCount += 1
+
     diag_sec = [board[x, -(x + 1)] for x in range(board.shape[0])]
     t = np.where(diag_sec == player_id)
+
     if len(t) == 4:
-            ok = (t[-1]!=player_id or t[0]!= player_id)
+            ok = (t[-1] != player_id or t[0] != player_id)
             if ok:
                 occCount += 1
   
     return occCount
 
-def fitness(game, player_id, depth):
+def fitness(game, player_id):
     winner = game.check_winner()
 
     if winner == 0:     ## Maximizer won (X)
@@ -45,13 +47,12 @@ def fitness(game, player_id, depth):
     elif winner == 1:   ## Minimizer won (O)
         return -100 
     else:
-
-        ##if there isn't a winner we search evaluate using the occurences that there are in row or column or diagonal
+        ## if there isn't a winner we search evaluate using the occurences that there are in row or column or diagonal
         value = 0
         board = game.get_board()
         occValue = calculate_occurences(board, player_id) * 5
         
-        #if you take the center of board you have a little reward
+        ## if you take the center of board you have a little reward
         if board[2, 2] == 0:
             value += 20
         elif board[2, 2] == 1:
@@ -61,15 +62,15 @@ def fitness(game, player_id, depth):
             occValue *= -1
 
         frequency = np.unique(board, return_counts=True)
-        uniqueCount = len(frequency[0])#in position 0 there are [-1(if there are space not picked),0,1]
-        if uniqueCount == 3: #it means that there are position not selected yet     
-            maximizerPieceCount = frequency[1][1]
-            minimizerPieceCount = frequency[1][2]
-        elif uniqueCount == 2:#it means that all position are picked
-            maximizerPieceCount = frequency[1][0]
-            minimizerPieceCount = frequency[1][1]
+        uniqueCount = len(frequency[0])     ## in position 0 there are [-1(if there are space not picked), 0, 1]
+        if uniqueCount == 3:        ## it means that there are position not selected yet     
+            xPieceCount = frequency[1][1]
+            oPieceCount = frequency[1][2]
+        elif uniqueCount == 2:      ## it means that all position are picked
+            xPieceCount = frequency[1][0]
+            oPieceCount = frequency[1][1]
 
-        value += (maximizerPieceCount - minimizerPieceCount) + occValue
+        value += (xPieceCount - oPieceCount) + occValue
         return value
 
 def wrap_min_max(game: Game):
@@ -79,7 +80,7 @@ def minmax(game, player_id, alpha=-sys.maxsize, beta=sys.maxsize, depth=2):
     winner = game.check_winner()
     
     if winner != -1 or depth == 0:
-        score = fitness(game, player_id, depth)
+        score = fitness(game, player_id)
         return None, score
 
     best_ply = None
@@ -99,6 +100,7 @@ def minmax(game, player_id, alpha=-sys.maxsize, beta=sys.maxsize, depth=2):
             
             if alpha >= beta:
                 break
+
         return best_ply, alpha
     
     else:       ## Player O
@@ -115,4 +117,5 @@ def minmax(game, player_id, alpha=-sys.maxsize, beta=sys.maxsize, depth=2):
             
             if alpha >= beta:
                 break
+            
         return best_ply, beta
